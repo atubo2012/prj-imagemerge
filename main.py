@@ -59,25 +59,28 @@ text_bbox = draw.textbbox((0, 0), text, font=font)
 text_width = text_bbox[2] - text_bbox[0]
 text_height = text_bbox[3] - text_bbox[1]
 
-# 在图片顶部居中显示文字
-text_position = ((img1.width - text_width) // 2, 50)
+# 将文字放在底部中间，但要避开二维码
+# 计算文字的x坐标（居中，但只考虑二维码左边的空间）
+text_x = (x - text_width) // 2  # x是二维码的左边界
+# 计算文字的y坐标（底部，与二维码对齐）
+text_y = img1.height - text_height - margin
 
 # 先绘制白色背景（可选）
 padding = 10
 background_bbox = (
-    text_position[0] - padding,
-    text_position[1] - padding,
-    text_position[0] + text_width + padding,
-    text_position[1] + text_height + padding
+    text_x - padding,
+    text_y - padding,
+    text_x + text_width + padding,
+    text_y + text_height + padding
 )
 draw.rectangle(background_bbox, fill=(255, 255, 255))  # 白色背景
 
 # 绘制文字
-draw.text(text_position, text, font=font, fill=text_color)
+draw.text((text_x, text_y), text, font=font, fill=text_color)
 
 # 打印调试信息
 print(f"图片尺寸: {img1.width} x {img1.height}")
-print(f"文字位置: {text_position}")
+print(f"文字位置: {text_x}, {text_y}")
 print(f"文字大小: {text_width} x {text_height}")
 
 # 保存结果

@@ -3,8 +3,8 @@ import sys
 import platform
 
 # 打开图片
-img1 = Image.open("/Users/seanhuang/Downloads/deliverroute.png")  # 主图片
-img2 = Image.open("/Users/seanhuang/Downloads/qrcode.jpg")        # 二维码图片
+img1 = Image.open(r"C:\Users\x1\Downloads\顶好葱油饼.png")  # 主图片
+img2 = Image.open(r"C:\Users\x1\Downloads\一品香Logo-甄选.png")        # 二维码图片
 
 # 设置二维码大小（可以根据需要调整）
 qr_width = int(img1.width * 0.2)  # 设置二维码宽度为主图片的20%
@@ -25,15 +25,14 @@ new_img.paste(img2_resized, (x, y))
 draw = ImageDraw.Draw(new_img)
 
 # 设置字体和大小
-font_size = 80  # 增大字体大小
+font_size = 40  # 减小字体大小
 
 # 尝试多个可能的字体路径
 possible_fonts = [
-    "/System/Library/Fonts/PingFang.ttc",
-    "/System/Library/Fonts/STHeiti Light.ttc",
-    "/System/Library/Fonts/STHeiti Medium.ttc",
-    "/Library/Fonts/Arial Unicode.ttf",
-    "/System/Library/Fonts/AppleGothic.ttf",
+    r"C:\Windows\Fonts\msyh.ttc",     # 微软雅黑
+    r"C:\Windows\Fonts\simsun.ttc",    # 宋体
+    r"C:\Windows\Fonts\simhei.ttf",    # 黑体
+    r"C:\Windows\Fonts\simkai.ttf",    # 楷体
 ]
 
 font = None
@@ -50,38 +49,43 @@ if font is None:
     print("所有字体加载失败，使用默认字体")
     font = ImageFont.load_default()
 
-# 添加文字
-text = "每周五下午免费送货5单，18:30-20:00送达列治文指定区域，请周五12:00前完成下单。"
+# 添加两行文字
+text_line1 = "每周五免费送货5单，18:30-20:00送达列治文指定区域（下图红框内）。"
+text_line2 = "请周五12:00前完成下单。接受微信支付。先付后送。"
 text_color = (0, 0, 0)  # 黑色
 
-# 计算文字大小
-text_bbox = draw.textbbox((0, 0), text, font=font)
-text_width = text_bbox[2] - text_bbox[0]
-text_height = text_bbox[3] - text_bbox[1]
+# 计算两行文字的大小
+text_bbox1 = draw.textbbox((0, 0), text_line1, font=font)
+text_bbox2 = draw.textbbox((0, 0), text_line2, font=font)
+text_width1 = text_bbox1[2] - text_bbox1[0]
+text_width2 = text_bbox2[2] - text_bbox2[0]
+text_height = text_bbox1[3] - text_bbox1[1]
 
-# 将文字放在底部中间，但要避开二维码
-# 计算文字的x坐标（居中，但只考虑二维码左边的空间）
-text_x = (x - text_width) // 2  # x是二维码的左边界
-# 计算文字的y坐标（底部，与二维码对齐）
-text_y = img1.height - text_height - margin
+# 计算文字位置（在顶部居中）
+margin_top = 20  # 顶部边距
+line_spacing = 10  # 行间距
 
-# 先绘制白色背景（可选）
+# 第一行文字位置
+text_x1 = (img1.width - text_width1) // 2
+text_y1 = margin_top
+
+# 第二行文字位置
+text_x2 = (img1.width - text_width2) // 2
+text_y2 = text_y1 + text_height + line_spacing
+
+# 绘制白色背景
 padding = 10
 background_bbox = (
-    text_x - padding,
-    text_y - padding,
-    text_x + text_width + padding,
-    text_y + text_height + padding
+    min(text_x1, text_x2) - padding,
+    text_y1 - padding,
+    max(text_x1 + text_width1, text_x2 + text_width2) + padding,
+    text_y2 + text_height + padding
 )
 draw.rectangle(background_bbox, fill=(255, 255, 255))  # 白色背景
 
-# 绘制文字
-draw.text((text_x, text_y), text, font=font, fill=text_color)
-
-# 打印调试信息
-print(f"图片尺寸: {img1.width} x {img1.height}")
-print(f"文字位置: {text_x}, {text_y}")
-print(f"文字大小: {text_width} x {text_height}")
+# 绘制两行文字
+draw.text((text_x1, text_y1), text_line1, font=font, fill=text_color)
+draw.text((text_x2, text_y2), text_line2, font=font, fill=text_color)
 
 # 保存结果
 new_img.save("merged.jpg")

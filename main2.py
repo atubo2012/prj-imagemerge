@@ -3,6 +3,7 @@ import sys
 import platform
 import os
 import argparse
+import textwrap
 
 # 创建必要的目录
 os.makedirs('images', exist_ok=True)
@@ -18,19 +19,56 @@ def parse_arguments():
     parser.add_argument('--logo-scale', type=float, default=0.2, help='Logo尺寸比例 (默认: 0.2)')
     parser.add_argument('--margin', type=int, default=20, help='边距像素 (默认: 20)')
     parser.add_argument('--font-size', type=int, default=40, help='字体大小 (默认: 40)')
+    parser.add_argument('--text', help='文字内容，使用\\n换行（可选）')
     return parser.parse_args()
-
-# 配置参数
-CONFIG = {
-    'text_line1': "每周五免费送货5单，18:30-20:00送达列治文指定区域（下图红框内）。",
-    'text_line2': "请周五12:00前完成下单。接受微信支付。先付后送。"
-}
 
 def resize_image(img, base_width, scale):
     """调整图片大小，保持宽高比"""
     new_width = int(base_width * scale)
     new_height = int(new_width * img.height / img.width)
     return img.resize((new_width, new_height))
+
+def get_text_dimensions(text, font):
+    """获取文本的尺寸"""
+    bbox = font.getbbox(text)
+    return bbox[2] - bbox[0], bbox[3] - bbox[1]
+
+def wrap_text(text, font, max_width):
+    """将文本按最大宽度自动换行，更积极的换行策略"""
+    lines = []
+    for paragraph in text.split('\n'):
+        if not paragraph:
+            lines.append('')
+            continue
+            
+        # 更积极的分词，包括标点符号
+        parts = []
+        current_part = ''
+        for char in paragraph:
+            if char in '，。！？、；：（）':
+                if current_part:
+                    parts.append(current_part)
+                parts.append(char)
+                current_part = ''
+            else:
+                current_part += char
+        if current_part:
+            parts.append(current_part)
+
+        current_line = ''
+        for part in parts:
+            test_line = current_line + part
+            if font.getlength(test_line) <= max_width:
+                current_line = test_line
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = part
+        
+        if current_line:
+            lines.append(current_line)
+            
+    return lines
 
 def process_image(args):
     try:
@@ -59,11 +97,12 @@ def process_image(args):
         new_img.paste(qr_resized, (qr_x, qr_y))
         new_img.paste(logo_resized, (logo_x, logo_y))
 
-        # 设置字体
-        font = load_font(args.font_size)
-        
-        # 添加文字
-        add_text_with_background(new_img, font)
+        # 如果指定了文本，则添加文字
+        if args.text:
+            # 设置字体
+            font = load_font(args.font_size)
+            # 添加文字
+            add_text_with_background(new_img, font, args.text)
 
         # 保存结果
         new_img.save(args.output)
@@ -90,39 +129,45 @@ def load_font(font_size):
     print("所有字体加载失败，使用默认字体")
     return ImageFont.load_default()
 
-def add_text_with_background(img, font):
+def add_text_with_background(img, font, text):
     draw = ImageDraw.Draw(img)
     
-    # 计算文字大小
-    text_bbox1 = draw.textbbox((0, 0), CONFIG['text_line1'], font=font)
-    text_bbox2 = draw.textbbox((0, 0), CONFIG['text_line2'], font=font)
+    # 减小最大文本宽度（改为图片宽度的60%）
+    max_text_width = int(img.width * 1)
     
-    # 计算尺寸
-    text_width1 = text_bbox1[2] - text_bbox1[0]
-    text_width2 = text_bbox2[2] - text_bbox2[0]
-    text_height = text_bbox1[3] - text_bbox1[1]
+    # 自动换行
+    lines = wrap_text(text, font, max_text_width)
     
-    # 计算位置
-    margin_top = 20
-    line_spacing = 10
-    text_x1 = (img.width - text_width1) // 2
-    text_y1 = margin_top
-    text_x2 = (img.width - text_width2) // 2
-    text_y2 = text_y1 + text_height + line_spacing
-
-    # 绘制白色背景
+    # 计算文本总高度
+    _, line_height = get_text_dimensions('测试', font)
+    line_spacing = 10  # 行间距
+    total_height = len(lines) * (line_height + line_spacing)
+    
+    # 增加顶部边距
+    margin_top = 10
+    text_y = margin_top
+    
+    # 计算所有行的最大宽度
+    max_width = max(font.getlength(line) for line in lines)
+    
+    # 增加背景内边距
     padding = 10
     background_bbox = (
-        min(text_x1, text_x2) - padding,
-        text_y1 - padding,
-        max(text_x1 + text_width1, text_x2 + text_width2) + padding,
-        text_y2 + text_height + padding
+        (img.width - max_width) // 2 - padding,
+        text_y - padding,
+        (img.width + max_width) // 2 + padding,
+        text_y + total_height + padding
     )
-    draw.rectangle(background_bbox, fill=(255, 255, 255))
-
-    # 绘制文字
-    draw.text((text_x1, text_y1), CONFIG['text_line1'], font=font, fill=(0, 0, 0))
-    draw.text((text_x2, text_y2), CONFIG['text_line2'], font=font, fill=(0, 0, 0))
+    
+    # 绘制白色背景，添加一点透明度
+    draw.rectangle(background_bbox, fill=(255, 255, 255, 230))
+    
+    # 绘制每一行文字
+    for line in lines:
+        text_width = font.getlength(line)
+        text_x = (img.width - text_width) // 2
+        draw.text((text_x, text_y), line, font=font, fill=(0, 0, 0))
+        text_y += line_height + line_spacing
 
 if __name__ == "__main__":
     args = parse_arguments()

@@ -4,6 +4,14 @@ import platform
 import os
 import argparse
 import textwrap
+import io
+import urllib.request
+
+try:
+    import qrcode
+    HAS_QRCODE = True
+except ImportError:
+    HAS_QRCODE = False
 
 # 创建必要的目录
 os.makedirs('images', exist_ok=True)
@@ -11,22 +19,56 @@ os.makedirs('output', exist_ok=True)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='图片合成工具')
-    parser.add_argument('main_image', help='主图片路径')
-    parser.add_argument('qr_image', help='二维码图片路径')
-    parser.add_argument('logo_image', help='Logo图片路径')
+    parser.add_argument('main_image', help='主图片路径或URL（配合--image-from-url使用）')
+    parser.add_argument('qr_image', nargs='?', help='二维码图片路径（如使用--generate-qr则可省略）')
+    parser.add_argument('logo_image', nargs='?', help='Logo图片路径（可选）')
     parser.add_argument('--output', '-o', default='output/merged.jpg', help='输出文件路径 (默认: output/merged.jpg)')
     parser.add_argument('--qr-scale', type=float, default=0.2, help='二维码尺寸比例 (默认: 0.2)')
     parser.add_argument('--logo-scale', type=float, default=0.2, help='Logo尺寸比例 (默认: 0.2)')
     parser.add_argument('--margin', type=int, default=20, help='边距像素 (默认: 20)')
     parser.add_argument('--font-size', type=int, default=40, help='字体大小 (默认: 40)')
     parser.add_argument('--text', help='文字内容，使用\\n换行（可选）')
-    return parser.parse_args()
+    parser.add_argument('--generate-qr', metavar='URL', help='从URL生成二维码（需安装qrcode库）')
+    parser.add_argument('--image-from-url', action='store_true', help='从URL下载主图片')
+
+    args = parser.parse_args()
+
+    # Validate arguments
+    if not args.generate_qr and not args.qr_image:
+        parser.error('必须提供二维码图片路径或使用 --generate-qr URL 生成二维码')
+
+    if args.generate_qr and not HAS_QRCODE:
+        parser.error('使用 --generate-qr 需要安装 qrcode 库: pip install qrcode[pil]')
+
+    return args
 
 def resize_image(img, base_width, scale):
     """调整图片大小，保持宽高比"""
     new_width = int(base_width * scale)
     new_height = int(new_width * img.height / img.width)
     return img.resize((new_width, new_height))
+
+def load_image_from_url(url):
+    """从URL下载图片"""
+    headers = {"User-Agent": "Mozilla/5.0"}
+    request = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(request) as response:
+        image_data = response.read()
+    return Image.open(io.BytesIO(image_data))
+
+def generate_qr_code(url, size):
+    """从URL生成二维码图片"""
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=2,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    qr_img = qr_img.convert("RGB")
+    return qr_img.resize((size, size), Image.LANCZOS)
 
 def get_text_dimensions(text, font):
     """获取文本的尺寸"""
@@ -72,14 +114,21 @@ def wrap_text(text, font, max_width):
 
 def process_image(args):
     try:
-        # 打开图片
-        main_img = Image.open(args.main_image)
-        qr_img = Image.open(args.qr_image)
-        logo_img = Image.open(args.logo_image)
+        # 打开主图片
+        if args.image_from_url:
+            print(f"从URL下载主图片: {args.main_image}")
+            main_img = load_image_from_url(args.main_image)
+        else:
+            main_img = Image.open(args.main_image)
 
-        # 调整二维码和 logo 大小
-        qr_resized = resize_image(qr_img, main_img.width, args.qr_scale)
-        logo_resized = resize_image(logo_img, main_img.width, args.logo_scale)
+        # 获取或生成二维码
+        if args.generate_qr:
+            print(f"生成二维码: {args.generate_qr}")
+            qr_size = int(main_img.width * args.qr_scale)
+            qr_resized = generate_qr_code(args.generate_qr, qr_size)
+        else:
+            qr_img = Image.open(args.qr_image)
+            qr_resized = resize_image(qr_img, main_img.width, args.qr_scale)
 
         # 创建新图片
         new_img = Image.new("RGB", (main_img.width, main_img.height))
@@ -88,14 +137,17 @@ def process_image(args):
         # 计算二维码位置（右下角）
         qr_x = main_img.width - qr_resized.width - args.margin
         qr_y = main_img.height - qr_resized.height - args.margin
-        
-        # 计算 logo 位置（左下角）
-        logo_x = args.margin
-        logo_y = main_img.height - logo_resized.height - args.margin
 
-        # 粘贴二维码和 logo
+        # 粘贴二维码
         new_img.paste(qr_resized, (qr_x, qr_y))
-        new_img.paste(logo_resized, (logo_x, logo_y))
+
+        # 如果提供了logo，则添加logo
+        if args.logo_image:
+            logo_img = Image.open(args.logo_image)
+            logo_resized = resize_image(logo_img, main_img.width, args.logo_scale)
+            logo_x = args.margin
+            logo_y = main_img.height - logo_resized.height - args.margin
+            new_img.paste(logo_resized, (logo_x, logo_y))
 
         # 如果指定了文本，则添加文字
         if args.text:

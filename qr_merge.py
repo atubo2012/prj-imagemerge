@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+"""Generate product image with QR code in bottom-right corner."""
+
+import argparse
+import os
+import io
+import urllib.request
+from PIL import Image
+import qrcode
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description="Generate product image with QR code linking to product URL"
+    )
+    parser.add_argument("url", help="Product page URL (will be encoded in QR code)")
+
+    image_group = parser.add_mutually_exclusive_group(required=True)
+    image_group.add_argument(
+        "--image-from-url",
+        help="Download product image from this URL"
+    )
+    image_group.add_argument(
+        "--image-from-local",
+        help="Path to local product image file"
+    )
+
+    parser.add_argument(
+        "--output", "-o",
+        default="output/merged.jpg",
+        help="Output file path (default: output/merged.jpg)"
+    )
+    parser.add_argument(
+        "--qr-scale",
+        type=float,
+        default=0.15,
+        help="QR code size as fraction of image width (default: 0.15)"
+    )
+    parser.add_argument(
+        "--margin",
+        type=int,
+        default=20,
+        help="Margin from edge in pixels (default: 20)"
+    )
+
+    return parser.parse_args()
+
+
+def load_image_from_url(url):
+    """Download image from URL and return as PIL Image."""
+    headers = {"User-Agent": "Mozilla/5.0"}
+    request = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(request) as response:
+        image_data = response.read()
+    return Image.open(io.BytesIO(image_data))
+
+
+def load_image(args):
+    """Load image from URL or local path."""
+    if args.image_from_url:
+        print(f"Downloading image from: {args.image_from_url}")
+        return load_image_from_url(args.image_from_url)
+    else:
+        print(f"Loading image from: {args.image_from_local}")
+        return Image.open(args.image_from_local)
+
+
+def generate_qr_code(url, size):
+    """Generate QR code image for the given URL."""
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=2,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    qr_img = qr_img.convert("RGB")
+    qr_img = qr_img.resize((size, size), Image.LANCZOS)
+
+    return qr_img
+
+
+def merge_images(main_image, qr_image, margin):
+    """Place QR code in bottom-right corner of main image."""
+    if main_image.mode != "RGB":
+        main_image = main_image.convert("RGB")
+
+    result = main_image.copy()
+
+    qr_x = main_image.width - qr_image.width - margin
+    qr_y = main_image.height - qr_image.height - margin
+
+    result.paste(qr_image, (qr_x, qr_y))
+
+    return result
+
+
+def main():
+    args = parse_arguments()
+
+    try:
+        main_image = load_image(args)
+
+        qr_size = int(main_image.width * args.qr_scale)
+        print(f"Generating QR code for: {args.url}")
+        qr_image = generate_qr_code(args.url, qr_size)
+
+        result = merge_images(main_image, qr_image, args.margin)
+
+        output_dir = os.path.dirname(args.output)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
+        result.save(args.output, quality=95)
+        print(f"Saved: {args.output}")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()

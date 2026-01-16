@@ -8,6 +8,7 @@
 - 可选择是否添加文字说明
 - 支持文字自动换行
 - 可自定义图片缩放比例、边距和字体大小
+- 根据URL自动生成二维码并合成到产品图片
 
 ## 使用方法
 
@@ -47,7 +48,32 @@ python "main2.py" ^
 pause
 ```
 
-## 参数说明
+### 3. 二维码自动生成（qr_merge.py）
+
+根据产品URL自动生成二维码，并合成到产品图片右下角。
+
+```bash
+# 使用本地图片
+python qr_merge.py <产品URL> --image-from-local <图片路径>
+
+# 使用网络图片
+python qr_merge.py <产品URL> --image-from-url <图片URL>
+```
+
+示例：
+```bash
+python qr_merge.py "https://example.com/product/123" --image-from-local "images/product.png" -o "output/merged.jpg"
+```
+
+参数说明：
+- `url`：产品页面URL（必需，将编码为二维码）
+- `--image-from-local`：本地图片路径（与--image-from-url二选一）
+- `--image-from-url`：网络图片URL（与--image-from-local二选一）
+- `--output`, `-o`：输出文件路径（默认：output/merged.jpg）
+- `--qr-scale`：二维码尺寸比例（默认：0.15，即主图宽度的15%）
+- `--margin`：边距像素（默认：20）
+
+## 参数说明（main2.py）
 
 必需参数：
 - 第一个参数：主图片路径

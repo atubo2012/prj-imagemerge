@@ -87,6 +87,69 @@ python qr_merge.py "https://example.com/product/123" --image-from-local "images/
 - `--margin`：边距像素（默认：20）
 - `--font-size`：字体大小（默认：40）
 - `--text`：文字内容，使用\n换行（可选）
+- `--generate-qr`：从URL生成二维码（无需提供二维码图片）
+- `--image-from-url`：从URL下载主图片
+
+## 测试
+
+项目包含完整的测试套件，使用 pytest 框架。
+
+### 运行测试
+
+```bash
+# 安装依赖
+pip install -r requirements.txt
+
+# 运行所有测试
+python -m pytest tests/ -v
+
+# 运行特定测试文件
+python -m pytest tests/test_qrcode.py -v
+```
+
+### 测试覆盖
+
+| 测试文件 | 测试数量 | 测试内容 |
+|---------|---------|---------|
+| `test_image_utils.py` | 4 | 图片缩放、宽高比保持 |
+| `test_qrcode.py` | 6 | 二维码生成、尺寸、URL编码 |
+| `test_text_utils.py` | 10 | 文字换行、尺寸计算、字体加载 |
+| `test_integration.py` | 6 | 图片合成、端到端工作流 |
+
+### 测试用例说明
+
+**图片工具测试 (test_image_utils.py)**
+- `test_resizing_maintains_aspect_ratio` - 验证缩放后宽高比保持不变
+- `test_resizing_with_different_scales` - 测试不同缩放比例
+- `test_resizing_square_image` - 测试正方形图片缩放
+- `test_resizing_preserves_mode` - 验证图片模式（RGB/RGBA）保持不变
+
+**二维码测试 (test_qrcode.py)**
+- `test_generates_correct_size` - 验证生成的二维码尺寸正确
+- `test_generates_rgb_image` - 验证输出为RGB格式
+- `test_generates_different_qr_for_different_urls` - 不同URL生成不同二维码
+- `test_generates_same_qr_for_same_url` - 相同URL生成相同二维码
+- `test_handles_long_url` - 测试长URL处理
+- `test_handles_chinese_characters_in_url` - 测试中文URL处理
+
+**文字工具测试 (test_text_utils.py)**
+- `test_short_text_no_wrap` - 短文字不换行
+- `test_respects_manual_line_breaks` - 手动换行符正确处理
+- `test_wraps_on_chinese_punctuation` - 中文标点处换行
+- `test_empty_text` - 空文字处理
+- `test_preserves_empty_lines` - 保留空行
+- `test_returns_tuple` - 返回正确的尺寸元组
+- `test_longer_text_wider` - 长文字宽度更大
+- `test_returns_font_object` - 字体加载成功
+- `test_different_sizes` - 不同字体大小加载
+
+**集成测试 (test_integration.py)**
+- `test_qr_placed_in_bottom_right` - 二维码放置在右下角
+- `test_converts_non_rgb_to_rgb` - 非RGB图片转换
+- `test_preserves_main_image_content` - 主图内容保持不变
+- `test_full_workflow_with_generated_qr` - 完整工作流测试
+- `test_save_and_load_merged_image` - 保存和加载测试
+- `test_resize_then_merge` - 缩放后合成测试
 
 ## 目录结构
 

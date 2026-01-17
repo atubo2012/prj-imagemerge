@@ -42,13 +42,13 @@ def parse_arguments():
 
     return args
 
-def resize_image(img, base_width, scale):
+def image_resizing(img, base_width, scale):
     """调整图片大小，保持宽高比"""
     new_width = int(base_width * scale)
     new_height = int(new_width * img.height / img.width)
     return img.resize((new_width, new_height))
 
-def load_image_from_url(url):
+def image_loading_from_url(url):
     """从URL下载图片"""
     headers = {"User-Agent": "Mozilla/5.0"}
     request = urllib.request.Request(url, headers=headers)
@@ -56,7 +56,7 @@ def load_image_from_url(url):
         image_data = response.read()
     return Image.open(io.BytesIO(image_data))
 
-def generate_qr_code(url, size):
+def qrcode_generating(url, size):
     """从URL生成二维码图片"""
     qr = qrcode.QRCode(
         version=1,
@@ -70,12 +70,12 @@ def generate_qr_code(url, size):
     qr_img = qr_img.convert("RGB")
     return qr_img.resize((size, size), Image.LANCZOS)
 
-def get_text_dimensions(text, font):
+def text_dimensions_getting(text, font):
     """获取文本的尺寸"""
     bbox = font.getbbox(text)
     return bbox[2] - bbox[0], bbox[3] - bbox[1]
 
-def wrap_text(text, font, max_width):
+def text_wrapping(text, font, max_width):
     """将文本按最大宽度自动换行，更积极的换行策略"""
     lines = []
     for paragraph in text.split('\n'):
@@ -112,12 +112,12 @@ def wrap_text(text, font, max_width):
             
     return lines
 
-def process_image(args):
+def imagewithqrcode_generating(args):
     try:
         # 打开主图片
         if args.image_from_url:
             print(f"从URL下载主图片: {args.main_image}")
-            main_img = load_image_from_url(args.main_image)
+            main_img = image_loading_from_url(args.main_image)
         else:
             main_img = Image.open(args.main_image)
 
@@ -125,10 +125,10 @@ def process_image(args):
         if args.generate_qr:
             print(f"生成二维码: {args.generate_qr}")
             qr_size = int(main_img.width * args.qr_scale)
-            qr_resized = generate_qr_code(args.generate_qr, qr_size)
+            qr_resized = qrcode_generating(args.generate_qr, qr_size)
         else:
             qr_img = Image.open(args.qr_image)
-            qr_resized = resize_image(qr_img, main_img.width, args.qr_scale)
+            qr_resized = image_resizing(qr_img, main_img.width, args.qr_scale)
 
         # 创建新图片
         new_img = Image.new("RGB", (main_img.width, main_img.height))
@@ -144,7 +144,7 @@ def process_image(args):
         # 如果提供了logo，则添加logo
         if args.logo_image:
             logo_img = Image.open(args.logo_image)
-            logo_resized = resize_image(logo_img, main_img.width, args.logo_scale)
+            logo_resized = image_resizing(logo_img, main_img.width, args.logo_scale)
             logo_x = args.margin
             logo_y = main_img.height - logo_resized.height - args.margin
             new_img.paste(logo_resized, (logo_x, logo_y))
@@ -152,9 +152,9 @@ def process_image(args):
         # 如果指定了文本，则添加文字
         if args.text:
             # 设置字体
-            font = load_font(args.font_size)
+            font = font_loading(args.font_size)
             # 添加文字
-            add_text_with_background(new_img, font, args.text)
+            text_with_background_adding(new_img, font, args.text)
 
         # 保存结果
         new_img.save(args.output)
@@ -164,7 +164,7 @@ def process_image(args):
         print(f"处理图片时出错: {str(e)}")
         sys.exit(1)
 
-def load_font(font_size):
+def font_loading(font_size):
     possible_fonts = [
         r"C:\Windows\Fonts\msyh.ttc",     # 微软雅黑
         r"C:\Windows\Fonts\simsun.ttc",    # 宋体
@@ -181,17 +181,17 @@ def load_font(font_size):
     print("所有字体加载失败，使用默认字体")
     return ImageFont.load_default()
 
-def add_text_with_background(img, font, text):
+def text_with_background_adding(img, font, text):
     draw = ImageDraw.Draw(img)
     
     # 减小最大文本宽度（改为图片宽度的60%）
     max_text_width = int(img.width * 1)
     
     # 自动换行
-    lines = wrap_text(text, font, max_text_width)
+    lines = text_wrapping(text, font, max_text_width)
     
     # 计算文本总高度
-    _, line_height = get_text_dimensions('测试', font)
+    _, line_height = text_dimensions_getting('测试', font)
     line_spacing = 10  # 行间距
     total_height = len(lines) * (line_height + line_spacing)
     
@@ -223,4 +223,4 @@ def add_text_with_background(img, font, text):
 
 if __name__ == "__main__":
     args = parse_arguments()
-    process_image(args)
+    imagewithqrcode_generating(args)

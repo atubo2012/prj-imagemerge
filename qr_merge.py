@@ -46,7 +46,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def load_image_from_url(url):
+def image_loading_from_url(url):
     """Download image from URL and return as PIL Image."""
     headers = {"User-Agent": "Mozilla/5.0"}
     request = urllib.request.Request(url, headers=headers)
@@ -55,17 +55,17 @@ def load_image_from_url(url):
     return Image.open(io.BytesIO(image_data))
 
 
-def load_image(args):
+def image_loading(args):
     """Load image from URL or local path."""
     if args.image_from_url:
         print(f"Downloading image from: {args.image_from_url}")
-        return load_image_from_url(args.image_from_url)
+        return image_loading_from_url(args.image_from_url)
     else:
         print(f"Loading image from: {args.image_from_local}")
         return Image.open(args.image_from_local)
 
 
-def generate_qr_code(url, size):
+def qrcode_generating(url, size):
     """Generate QR code image for the given URL."""
     qr = qrcode.QRCode(
         version=1,
@@ -83,7 +83,7 @@ def generate_qr_code(url, size):
     return qr_img
 
 
-def merge_images(main_image, qr_image, margin):
+def images_merging(main_image, qr_image, margin):
     """Place QR code in bottom-right corner of main image."""
     if main_image.mode != "RGB":
         main_image = main_image.convert("RGB")
@@ -102,13 +102,13 @@ def main():
     args = parse_arguments()
 
     try:
-        main_image = load_image(args)
+        main_image = image_loading(args)
 
         qr_size = int(main_image.width * args.qr_scale)
         print(f"Generating QR code for: {args.url}")
-        qr_image = generate_qr_code(args.url, qr_size)
+        qr_image = qrcode_generating(args.url, qr_size)
 
-        result = merge_images(main_image, qr_image, args.margin)
+        result = images_merging(main_image, qr_image, args.margin)
 
         output_dir = os.path.dirname(args.output)
         if output_dir:

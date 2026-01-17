@@ -8,23 +8,15 @@ import urllib.request
 from PIL import Image
 import qrcode
 
+from i18n import t, set_language
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description="Generate product image with QR code linking to product URL"
     )
+    parser.add_argument("image", help="Product image (local path or URL, auto-detected)")
     parser.add_argument("url", help="Product page URL (will be encoded in QR code)")
-
-    image_group = parser.add_mutually_exclusive_group(required=True)
-    image_group.add_argument(
-        "--image-from-url",
-        help="Download product image from this URL"
-    )
-    image_group.add_argument(
-        "--image-from-local",
-        help="Path to local product image file"
-    )
-
     parser.add_argument(
         "--output", "-o",
         default="output/merged.jpg",
@@ -42,8 +34,21 @@ def parse_arguments():
         default=20,
         help="Margin from edge in pixels (default: 20)"
     )
+    parser.add_argument(
+        "--lang",
+        choices=['en', 'zh'],
+        default='en',
+        help="Language/语言 (default: en)"
+    )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    set_language(args.lang)
+    return args
+
+
+def is_url(path):
+    """Check if path is a URL."""
+    return path.startswith('http://') or path.startswith('https://')
 
 
 def image_loading_from_url(url):
@@ -56,13 +61,13 @@ def image_loading_from_url(url):
 
 
 def image_loading(args):
-    """Load image from URL or local path."""
-    if args.image_from_url:
-        print(f"Downloading image from: {args.image_from_url}")
-        return image_loading_from_url(args.image_from_url)
+    """Load image from URL or local path (auto-detect)."""
+    if is_url(args.image):
+        print(t('downloading_image', args.image))
+        return image_loading_from_url(args.image)
     else:
-        print(f"Loading image from: {args.image_from_local}")
-        return Image.open(args.image_from_local)
+        print(t('loading_image', args.image))
+        return Image.open(args.image)
 
 
 def qrcode_generating(url, size):
@@ -105,7 +110,7 @@ def main():
         main_image = image_loading(args)
 
         qr_size = int(main_image.width * args.qr_scale)
-        print(f"Generating QR code for: {args.url}")
+        print(t('generating_qr', args.url))
         qr_image = qrcode_generating(args.url, qr_size)
 
         result = images_merging(main_image, qr_image, args.margin)
@@ -115,10 +120,10 @@ def main():
             os.makedirs(output_dir, exist_ok=True)
 
         result.save(args.output, quality=95)
-        print(f"Saved: {args.output}")
+        print(t('image_saved', args.output))
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(t('error', e))
         raise SystemExit(1)
 
 

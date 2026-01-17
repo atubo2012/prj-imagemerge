@@ -7,6 +7,8 @@ import textwrap
 import io
 import urllib.request
 
+from i18n import t, set_language
+
 try:
     import qrcode
     HAS_QRCODE = True
@@ -29,18 +31,25 @@ def parse_arguments():
     parser.add_argument('--font-size', type=int, default=40, help='字体大小 (默认: 40)')
     parser.add_argument('--text', help='文字内容，使用\\n换行（可选）')
     parser.add_argument('--generate-qr', metavar='URL', help='从URL生成二维码（需安装qrcode库）')
-    parser.add_argument('--image-from-url', action='store_true', help='从URL下载主图片')
+    parser.add_argument('--lang', choices=['en', 'zh'], default='zh', help='Language/语言 (default: zh)')
 
     args = parser.parse_args()
 
+    # Set language
+    set_language(args.lang)
+
     # Validate arguments
     if not args.generate_qr and not args.qr_image:
-        parser.error('必须提供二维码图片路径或使用 --generate-qr URL 生成二维码')
+        parser.error(t('qr_required'))
 
     if args.generate_qr and not HAS_QRCODE:
-        parser.error('使用 --generate-qr 需要安装 qrcode 库: pip install qrcode[pil]')
+        parser.error(t('qr_library_required'))
 
     return args
+
+def is_url(path):
+    """Check if path is a URL."""
+    return path.startswith('http://') or path.startswith('https://')
 
 def image_resizing(img, base_width, scale):
     """调整图片大小，保持宽高比"""
@@ -114,16 +123,17 @@ def text_wrapping(text, font, max_width):
 
 def imagewithqrcode_generating(args):
     try:
-        # 打开主图片
-        if args.image_from_url:
-            print(f"从URL下载主图片: {args.main_image}")
+        # Load main image (auto-detect URL)
+        if is_url(args.main_image):
+            print(t('downloading_image', args.main_image))
             main_img = image_loading_from_url(args.main_image)
         else:
+            print(t('loading_image', args.main_image))
             main_img = Image.open(args.main_image)
 
-        # 获取或生成二维码
+        # Get or generate QR code
         if args.generate_qr:
-            print(f"生成二维码: {args.generate_qr}")
+            print(t('generating_qr', args.generate_qr))
             qr_size = int(main_img.width * args.qr_scale)
             qr_resized = qrcode_generating(args.generate_qr, qr_size)
         else:
@@ -156,12 +166,12 @@ def imagewithqrcode_generating(args):
             # 添加文字
             text_with_background_adding(new_img, font, args.text)
 
-        # 保存结果
+        # Save result
         new_img.save(args.output)
-        print(f"图片已保存到: {args.output}")
-        
+        print(t('image_saved', args.output))
+
     except Exception as e:
-        print(f"处理图片时出错: {str(e)}")
+        print(t('processing_error', str(e)))
         sys.exit(1)
 
 def font_loading(font_size):
@@ -178,7 +188,7 @@ def font_loading(font_size):
         except Exception:
             continue
     
-    print("所有字体加载失败，使用默认字体")
+    print(t('font_load_failed'))
     return ImageFont.load_default()
 
 def text_with_background_adding(img, font, text):

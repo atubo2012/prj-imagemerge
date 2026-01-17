@@ -12,6 +12,7 @@ ven/
 
 # Output files
 output/
+images/
 merged.jpg
 
 # Claude Code exports

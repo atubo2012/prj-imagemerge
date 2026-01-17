@@ -44,7 +44,7 @@ pip install -r requirements.txt
 Merge your product image with a QR code:
 
 ```bash
-python imagemerge.py product.png --generate-qr "https://your-shop.com/product/123"
+python imagemerge.py product.png -q "https://your-shop.com/product/123"
 ```
 
 This will:
@@ -56,7 +56,7 @@ This will:
 Load image from URL:
 
 ```bash
-python imagemerge.py "https://cdn.example.com/product.jpg" --generate-qr "https://shop.com/product"
+python imagemerge.py "https://cdn.example.com/product.jpg" -q "https://shop.com/product"
 ```
 
 ## Usage Examples
@@ -64,38 +64,40 @@ python imagemerge.py "https://cdn.example.com/product.jpg" --generate-qr "https:
 ### 1. Image + QR Code (Simplest)
 
 ```bash
-python imagemerge.py product.png --generate-qr "https://example.com/product"
+python imagemerge.py product.png -q "https://example.com/product"
 ```
 
 ### 2. Image + QR Code + Logo
 
 ```bash
-python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png
+python imagemerge.py product.png -q "https://example.com/product" -l logo.png
 ```
 
 ### 3. Image + QR Code + Logo + Text
 
 ```bash
-python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png \
-  --text "Free shipping!\nOrder now."
+python imagemerge.py product.png -q "https://example.com/product" -l logo.png \
+  -t "Free shipping!\nOrder now."
 ```
 
 ### 4. Using Existing QR Image
 
 ```bash
-python imagemerge.py product.png qrcode.png logo.png
+python imagemerge.py product.png qrcode.png -l logo.png
 ```
 
 ### 5. Full Example with All Options
 
 ```bash
-python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png \
-  --output "output/my_product.jpg" \
+python imagemerge.py product.png -q "https://example.com/product" -l logo.png \
+  -o "output/my_product.jpg" \
   --qr-scale 0.15 \
   --logo-scale 0.2 \
-  --margin 30 \
+  --qr-margin 30 \
+  --logo-margin 20 \
+  --text-margin 15 \
   --font-size 36 \
-  --text "Special Offer!\nLimited time only." \
+  -t "Special Offer!\nLimited time only." \
   --lang en
 ```
 
@@ -104,15 +106,17 @@ python imagemerge.py product.png --generate-qr "https://example.com/product" log
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `main_image` | Product image (local path or URL) | Required |
-| `qr_image` | QR code image (optional if using --generate-qr) | - |
-| `logo_image` | Logo image (optional) | - |
-| `--generate-qr` | Generate QR code from URL | - |
-| `--output`, `-o` | Output file path | output/merged.jpg |
+| `qr_image` | QR code image (optional if using -q) | - |
+| `-q`, `--generate-qr` | Generate QR code from URL | - |
 | `--qr-scale` | QR code size ratio | 0.2 (20%) |
+| `--qr-margin` | QR code margin in pixels | 20 |
+| `-l`, `--logo` | Logo image file | - |
 | `--logo-scale` | Logo size ratio | 0.2 (20%) |
-| `--margin` | Edge margin in pixels | 20 |
+| `--logo-margin` | Logo margin in pixels | 20 |
+| `-t`, `--text` | Text overlay (use \n for line breaks) | - |
 | `--font-size` | Font size for text | 40 |
-| `--text` | Text overlay (use \n for line breaks) | - |
+| `--text-margin` | Text top margin in pixels | 10 |
+| `-o`, `--output` | Output file path | output/merged.jpg |
 | `--lang` | Output language (en/zh) | zh |
 
 ## Testing

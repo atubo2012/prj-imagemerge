@@ -25,27 +25,40 @@ os.makedirs('output', exist_ok=True)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description='Image merge tool / 图片合成工具',
+        description='Image merge tool - Compose product images with QR codes and logos',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:
   %(prog)s product.png --generate-qr "https://example.com"
-  %(prog)s product.png --generate-qr "https://example.com" logo.png
+  %(prog)s product.png --generate-qr "https://example.com" --logo logo.png
   %(prog)s "https://cdn.com/img.jpg" --generate-qr "https://example.com"
-  %(prog)s product.png qrcode.png logo.png --text "Special offer!"
+  %(prog)s product.png qrcode.png --logo logo.png --text "Special offer!"
 '''
     )
+    # Required
     parser.add_argument('main_image', help='Main image (local path or URL, auto-detected)')
     parser.add_argument('qr_image', nargs='?', help='QR code image (optional if using --generate-qr)')
-    parser.add_argument('logo_image', nargs='?', help='Logo image (optional)')
-    parser.add_argument('--output', '-o', default='output/merged.jpg', help='Output file path (default: output/merged.jpg)')
+
+    # QR code options
+    parser.add_argument('--generate-qr', '-q', metavar='URL', help='Generate QR code from URL')
     parser.add_argument('--qr-scale', type=float, default=0.2, help='QR code size ratio (default: 0.2)')
+
+    # Logo options
+    parser.add_argument('--logo', '-l', metavar='FILE', help='Logo image file (optional)')
     parser.add_argument('--logo-scale', type=float, default=0.2, help='Logo size ratio (default: 0.2)')
-    parser.add_argument('--margin', type=int, default=20, help='Margin in pixels (default: 20)')
+
+    # Text options
+    parser.add_argument('--text', '-t', help='Text overlay, use \\n for line breaks (optional)')
     parser.add_argument('--font-size', type=int, default=40, help='Font size (default: 40)')
-    parser.add_argument('--text', help='Text overlay, use \\n for line breaks (optional)')
-    parser.add_argument('--generate-qr', metavar='URL', help='Generate QR code from URL')
-    parser.add_argument('--lang', choices=['en', 'zh'], default='zh', help='Language (default: zh)')
+
+    # Layout options
+    parser.add_argument('--qr-margin', type=int, default=20, help='QR code margin in pixels (default: 20)')
+    parser.add_argument('--logo-margin', type=int, default=20, help='Logo margin in pixels (default: 20)')
+    parser.add_argument('--text-margin', type=int, default=10, help='Text top margin in pixels (default: 10)')
+
+    # Output options
+    parser.add_argument('--output', '-o', default='output/merged.jpg', help='Output file path (default: output/merged.jpg)')
+    parser.add_argument('--lang', choices=['en', 'zh'], default='zh', help='Output language (default: zh)')
 
     args = parser.parse_args()
 
@@ -178,7 +191,7 @@ def font_loading(font_size):
     return ImageFont.load_default()
 
 
-def text_with_background_adding(img, font, text):
+def text_with_background_adding(img, font, text, text_margin=10):
     """Add text with white background to image."""
     draw = ImageDraw.Draw(img)
 
@@ -192,8 +205,7 @@ def text_with_background_adding(img, font, text):
     line_spacing = 10
     total_height = len(lines) * (line_height + line_spacing)
 
-    margin_top = 10
-    text_y = margin_top
+    text_y = text_margin
 
     # Calculate max width of all lines
     max_width = max(font.getlength(line) for line in lines)
@@ -241,22 +253,22 @@ def imagewithqrcode_generating(args):
         new_img.paste(main_img, (0, 0))
 
         # Place QR code (bottom-right)
-        qr_x = main_img.width - qr_resized.width - args.margin
-        qr_y = main_img.height - qr_resized.height - args.margin
+        qr_x = main_img.width - qr_resized.width - args.qr_margin
+        qr_y = main_img.height - qr_resized.height - args.qr_margin
         new_img.paste(qr_resized, (qr_x, qr_y))
 
         # Add logo if provided (bottom-left)
-        if args.logo_image:
-            logo_img = Image.open(args.logo_image)
+        if args.logo:
+            logo_img = Image.open(args.logo)
             logo_resized = image_resizing(logo_img, main_img.width, args.logo_scale)
-            logo_x = args.margin
-            logo_y = main_img.height - logo_resized.height - args.margin
+            logo_x = args.logo_margin
+            logo_y = main_img.height - logo_resized.height - args.logo_margin
             new_img.paste(logo_resized, (logo_x, logo_y))
 
         # Add text if provided
         if args.text:
             font = font_loading(args.font_size)
-            text_with_background_adding(new_img, font, args.text)
+            text_with_background_adding(new_img, font, args.text, args.text_margin)
 
         # Save result
         output_dir = os.path.dirname(args.output)

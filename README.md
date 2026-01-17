@@ -44,7 +44,7 @@ pip install -r requirements.txt
 将产品图片与二维码合成：
 
 ```bash
-python imagemerge.py product.png --generate-qr "https://your-shop.com/product/123"
+python imagemerge.py product.png -q "https://your-shop.com/product/123"
 ```
 
 这将：
@@ -56,7 +56,7 @@ python imagemerge.py product.png --generate-qr "https://your-shop.com/product/12
 从URL加载图片：
 
 ```bash
-python imagemerge.py "https://cdn.example.com/product.jpg" --generate-qr "https://shop.com/product"
+python imagemerge.py "https://cdn.example.com/product.jpg" -q "https://shop.com/product"
 ```
 
 ## 使用示例
@@ -64,38 +64,40 @@ python imagemerge.py "https://cdn.example.com/product.jpg" --generate-qr "https:
 ### 1. 图片 + 二维码（最简单）
 
 ```bash
-python imagemerge.py product.png --generate-qr "https://example.com/product"
+python imagemerge.py product.png -q "https://example.com/product"
 ```
 
 ### 2. 图片 + 二维码 + Logo
 
 ```bash
-python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png
+python imagemerge.py product.png -q "https://example.com/product" -l logo.png
 ```
 
 ### 3. 图片 + 二维码 + Logo + 文字
 
 ```bash
-python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png \
-  --text "免费配送！\n立即下单。"
+python imagemerge.py product.png -q "https://example.com/product" -l logo.png \
+  -t "免费配送！\n立即下单。"
 ```
 
 ### 4. 使用现有二维码图片
 
 ```bash
-python imagemerge.py product.png qrcode.png logo.png
+python imagemerge.py product.png qrcode.png -l logo.png
 ```
 
 ### 5. 完整示例（所有选项）
 
 ```bash
-python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png \
-  --output "output/my_product.jpg" \
+python imagemerge.py product.png -q "https://example.com/product" -l logo.png \
+  -o "output/my_product.jpg" \
   --qr-scale 0.15 \
   --logo-scale 0.2 \
-  --margin 30 \
+  --qr-margin 30 \
+  --logo-margin 20 \
+  --text-margin 15 \
   --font-size 36 \
-  --text "特价优惠！\n限时抢购。" \
+  -t "特价优惠！\n限时抢购。" \
   --lang zh
 ```
 
@@ -104,15 +106,17 @@ python imagemerge.py product.png --generate-qr "https://example.com/product" log
 | 参数 | 说明 | 默认值 |
 |-----|------|-------|
 | `main_image` | 产品图片（本地路径或URL） | 必需 |
-| `qr_image` | 二维码图片（使用--generate-qr时可省略） | - |
-| `logo_image` | Logo图片（可选） | - |
-| `--generate-qr` | 从URL生成二维码 | - |
-| `--output`, `-o` | 输出文件路径 | output/merged.jpg |
+| `qr_image` | 二维码图片（使用-q时可省略） | - |
+| `-q`, `--generate-qr` | 从URL生成二维码 | - |
 | `--qr-scale` | 二维码尺寸比例 | 0.2 (20%) |
+| `--qr-margin` | 二维码边距像素 | 20 |
+| `-l`, `--logo` | Logo图片文件 | - |
 | `--logo-scale` | Logo尺寸比例 | 0.2 (20%) |
-| `--margin` | 边距像素 | 20 |
+| `--logo-margin` | Logo边距像素 | 20 |
+| `-t`, `--text` | 文字内容（用\n换行） | - |
 | `--font-size` | 字体大小 | 40 |
-| `--text` | 文字内容（用\n换行） | - |
+| `--text-margin` | 文字顶部边距像素 | 10 |
+| `-o`, `--output` | 输出文件路径 | output/merged.jpg |
 | `--lang` | 输出语言 (en/zh) | zh |
 
 ## 测试

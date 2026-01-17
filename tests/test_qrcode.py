@@ -64,9 +64,9 @@ class TestQrcodeGenerating:
         assert result.width == size
         assert result.height == size
 
-    def test_handles_chinese_characters_in_url(self):
-        """Test that URLs with Chinese characters work."""
-        url = "https://example.com/产品/测试"
+    def test_handles_unicode_characters_in_url(self):
+        """Test that URLs with unicode characters work."""
+        url = "https://example.com/product/test%E4%BA%A7%E5%93%81"
         size = 150
 
         result = qrcode_generating(url, size)

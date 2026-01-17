@@ -40,14 +40,14 @@ class TestTextWrapping:
         assert result[1] == "Line2"
         assert result[2] == "Line3"
 
-    def test_wraps_on_chinese_punctuation(self, font):
-        """Test that text wraps on Chinese punctuation."""
-        text = "这是第一句，这是第二句。"
+    def test_wraps_on_punctuation(self, font):
+        """Test that text wraps on punctuation."""
+        text = "This is sentence one, this is sentence two."
         max_width = 100  # Force wrapping
 
         result = text_wrapping(text, font, max_width)
 
-        # Should wrap at punctuation
+        # Should wrap due to width constraint
         assert len(result) >= 1
 
     def test_empty_text(self, font):

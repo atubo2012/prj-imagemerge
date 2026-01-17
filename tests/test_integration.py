@@ -8,8 +8,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from main2 import image_resizing, qrcode_generating
-from qr_merge import images_merging
+from imagemerge import image_resizing, qrcode_generating, images_merging
 
 
 class TestImagesMerging:

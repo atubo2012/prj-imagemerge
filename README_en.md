@@ -17,7 +17,7 @@ pip install -r requirements.txt
 Merge your product image with a QR code linking to your product URL:
 
 ```bash
-python main2.py product.png --generate-qr "https://your-shop.com/product/123"
+python imagemerge.py product.png --generate-qr "https://your-shop.com/product/123"
 ```
 
 This will:
@@ -32,7 +32,7 @@ The tool auto-detects if the input is a URL:
 
 ```bash
 # Image is automatically downloaded
-python main2.py "https://cdn.example.com/product.jpg" --generate-qr "https://shop.com/product"
+python imagemerge.py "https://cdn.example.com/product.jpg" --generate-qr "https://shop.com/product"
 ```
 
 ## Usage Examples
@@ -40,32 +40,32 @@ python main2.py "https://cdn.example.com/product.jpg" --generate-qr "https://sho
 ### 1. Image + QR Code (Simplest)
 
 ```bash
-python main2.py product.png --generate-qr "https://example.com/product"
+python imagemerge.py product.png --generate-qr "https://example.com/product"
 ```
 
 ### 2. Image + QR Code + Logo
 
 ```bash
-python main2.py product.png --generate-qr "https://example.com/product" logo.png
+python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png
 ```
 
 ### 3. Image + QR Code + Logo + Text
 
 ```bash
-python main2.py product.png --generate-qr "https://example.com/product" logo.png \
+python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png \
   --text "Free shipping!\nOrder now."
 ```
 
 ### 4. Using Existing QR Image
 
 ```bash
-python main2.py product.png qrcode.png logo.png
+python imagemerge.py product.png qrcode.png logo.png
 ```
 
 ### 5. Full Example with All Options
 
 ```bash
-python main2.py product.png --generate-qr "https://example.com/product" logo.png \
+python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png \
   --output "output/my_product.jpg" \
   --qr-scale 0.15 \
   --logo-scale 0.2 \
@@ -75,21 +75,7 @@ python main2.py product.png --generate-qr "https://example.com/product" logo.png
   --lang en
 ```
 
-## Alternative: qr_merge.py
-
-A simpler script for just merging image with QR code:
-
-```bash
-# Local image
-python qr_merge.py product.png "https://example.com/product"
-
-# Image from URL (auto-detected)
-python qr_merge.py "https://cdn.com/product.jpg" "https://example.com/product"
-```
-
 ## Parameters
-
-### main2.py
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
@@ -104,17 +90,6 @@ python qr_merge.py "https://cdn.com/product.jpg" "https://example.com/product"
 | `--font-size` | Font size for text | 40 |
 | `--text` | Text overlay (use \n for line breaks) | - |
 | `--lang` | Output language (en/zh) | zh |
-
-### qr_merge.py
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `image` | Product image (local path or URL) | Required |
-| `url` | Product URL (encoded as QR code) | Required |
-| `--output`, `-o` | Output file path | output/merged.jpg |
-| `--qr-scale` | QR code size ratio | 0.15 (15%) |
-| `--margin` | Edge margin in pixels | 20 |
-| `--lang` | Output language (en/zh) | en |
 
 ## Testing
 

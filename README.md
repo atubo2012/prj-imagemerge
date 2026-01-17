@@ -17,7 +17,7 @@ pip install -r requirements.txt
 将产品图片与二维码合成：
 
 ```bash
-python main2.py product.png --generate-qr "https://your-shop.com/product/123"
+python imagemerge.py product.png --generate-qr "https://your-shop.com/product/123"
 ```
 
 这将：
@@ -32,7 +32,7 @@ python main2.py product.png --generate-qr "https://your-shop.com/product/123"
 
 ```bash
 # 图片自动下载
-python main2.py "https://cdn.example.com/product.jpg" --generate-qr "https://shop.com/product"
+python imagemerge.py "https://cdn.example.com/product.jpg" --generate-qr "https://shop.com/product"
 ```
 
 ## 使用示例
@@ -40,32 +40,32 @@ python main2.py "https://cdn.example.com/product.jpg" --generate-qr "https://sho
 ### 1. 图片 + 二维码（最简单）
 
 ```bash
-python main2.py product.png --generate-qr "https://example.com/product"
+python imagemerge.py product.png --generate-qr "https://example.com/product"
 ```
 
 ### 2. 图片 + 二维码 + Logo
 
 ```bash
-python main2.py product.png --generate-qr "https://example.com/product" logo.png
+python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png
 ```
 
 ### 3. 图片 + 二维码 + Logo + 文字
 
 ```bash
-python main2.py product.png --generate-qr "https://example.com/product" logo.png \
+python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png \
   --text "免费配送！\n立即下单。"
 ```
 
 ### 4. 使用现有二维码图片
 
 ```bash
-python main2.py product.png qrcode.png logo.png
+python imagemerge.py product.png qrcode.png logo.png
 ```
 
 ### 5. 完整示例（所有选项）
 
 ```bash
-python main2.py product.png --generate-qr "https://example.com/product" logo.png \
+python imagemerge.py product.png --generate-qr "https://example.com/product" logo.png \
   --output "output/my_product.jpg" \
   --qr-scale 0.15 \
   --logo-scale 0.2 \
@@ -75,21 +75,7 @@ python main2.py product.png --generate-qr "https://example.com/product" logo.png
   --lang zh
 ```
 
-## 替代方案：qr_merge.py
-
-更简单的脚本，仅用于合成图片和二维码：
-
-```bash
-# 本地图片
-python qr_merge.py product.png "https://example.com/product"
-
-# 从URL加载图片（自动检测）
-python qr_merge.py "https://cdn.com/product.jpg" "https://example.com/product"
-```
-
 ## 参数说明
-
-### main2.py
 
 | 参数 | 说明 | 默认值 |
 |-----|------|-------|
@@ -104,17 +90,6 @@ python qr_merge.py "https://cdn.com/product.jpg" "https://example.com/product"
 | `--font-size` | 字体大小 | 40 |
 | `--text` | 文字内容（用\n换行） | - |
 | `--lang` | 输出语言 (en/zh) | zh |
-
-### qr_merge.py
-
-| 参数 | 说明 | 默认值 |
-|-----|------|-------|
-| `image` | 产品图片（本地路径或URL） | 必需 |
-| `url` | 产品URL（编码为二维码） | 必需 |
-| `--output`, `-o` | 输出文件路径 | output/merged.jpg |
-| `--qr-scale` | 二维码尺寸比例 | 0.15 (15%) |
-| `--margin` | 边距像素 | 20 |
-| `--lang` | 输出语言 (en/zh) | en |
 
 ## 测试
 

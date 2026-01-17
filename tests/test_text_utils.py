@@ -7,7 +7,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from main2 import text_wrapping, text_dimensions_getting, font_loading
+from imagemerge import text_wrapping, text_dimensions_getting, font_loading
 
 
 class TestTextWrapping:

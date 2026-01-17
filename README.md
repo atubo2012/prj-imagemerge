@@ -4,15 +4,42 @@
 
 用于合成产品图片、二维码和Logo的工具，适合电商产品营销。
 
-## 快速开始
+## 功能特点
 
-### 安装
+- 自动生成二维码 - 输入URL即可生成
+- 支持URL加载图片 - 自动检测并下载网络图片
+- 中英文双语支持 - 可切换输出语言
+- 灵活的布局控制 - 自定义缩放比例、边距
+- 支持文字叠加 - 添加营销文案
+
+## 效果预览
+
+原图 + 二维码 → 合成图
+
+![效果预览](images/preview.jpg)
+
+## 环境要求
+
+- Python 3.8+
+- 主要依赖：Pillow, qrcode
+
+## 安装
 
 ```bash
+# 克隆仓库
+git clone https://github.com/atubo2012/prj-imagemerge.git
+cd prj-imagemerge
+
+# 创建虚拟环境
+python -m venv ven
+source ven/bin/activate  # Linux/Mac
+ven\Scripts\activate     # Windows
+
+# 安装依赖
 pip install -r requirements.txt
 ```
 
-### 最简单用法
+## 快速开始
 
 将产品图片与二维码合成：
 
@@ -26,12 +53,9 @@ python imagemerge.py product.png --generate-qr "https://your-shop.com/product/12
 - 将二维码放在右下角
 - 保存到 `output/merged.jpg`
 
-### 从URL加载图片
-
-工具自动检测输入是否为URL：
+从URL加载图片：
 
 ```bash
-# 图片自动下载
 python imagemerge.py "https://cdn.example.com/product.jpg" --generate-qr "https://shop.com/product"
 ```
 
@@ -109,22 +133,6 @@ python -m pytest tests/test_qrcode.py -v
 | `test_qrcode.py` | 6 | 二维码生成 |
 | `test_text_utils.py` | 10 | 文字换行、字体 |
 | `test_integration.py` | 6 | 端到端工作流 |
-
-## 安装
-
-```bash
-# 克隆仓库
-git clone https://github.com/atubo2012/prj-imagemerge.git
-cd prj-imagemerge
-
-# 创建虚拟环境
-python -m venv ven
-source ven/bin/activate  # Linux/Mac
-ven\Scripts\activate     # Windows
-
-# 安装依赖
-pip install -r requirements.txt
-```
 
 ## 许可证
 

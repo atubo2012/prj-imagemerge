@@ -13,3 +13,6 @@ ven/
 # Output files
 output/
 merged.jpg
+
+# Claude Code exports
+????-??-??-*.txt
